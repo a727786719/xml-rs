@@ -53,6 +53,10 @@ pub enum Encoding {
     Utf16Le,
     /// Unknown endianness yet, will be sniffed
     Utf16,
+
+    GBK,
+    GB2312,
+
     /// Not determined yet, may be sniffed to be anything
     Unknown,
 }
@@ -75,6 +79,10 @@ impl FromStr for Encoding {
             Ok(Encoding::Utf16)
         } else if ["ascii", "us-ascii"].into_iter().any(move |label| icmp(label, val)) {
             Ok(Encoding::Ascii)
+        } else if ["gbk"].into_iter().any(move | label| icmp(label, val)) {
+            Ok(Encoding::GBK)
+        }  else if ["gb2312"].into_iter().any(move | label| icmp(label, val)) {
+            Ok(Encoding::GB2312)
         } else {
             Err("unknown encoding name")
         }
@@ -92,6 +100,8 @@ impl fmt::Display for Encoding {
             Encoding::Utf16Be |
             Encoding::Utf16Le |
             Encoding::Utf16 => "UTF-16",
+            Encoding::GBK => "GBK",
+            Encoding::GB2312 => "GB2312",
             Encoding::Unknown => "(unknown)",
         })
     }
@@ -205,6 +215,12 @@ impl CharReader {
                             .map_err(|e| CharReadError::Io(io::Error::new(io::ErrorKind::InvalidData, e)));
                     }
                 },
+                Encoding::GBK | Encoding::GB2312 => {
+                    buf[pos] = next;
+                    pos += 1;
+                    let (cow, _, _) = encoding_rs::GBK.decode(&buf[..pos]);
+                    return Ok(cow.chars().next());
+                }
             }
         }
     }

@@ -32,3 +32,6 @@ rustdoc-args = ["--generate-link-to-definition"]
 [package.metadata.release]
 tag-name = "{{version}}"
 tag-message = ""
+
+[dependencies]
+encoding_rs = "0.8"
